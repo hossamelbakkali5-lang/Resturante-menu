@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>شواية بن دبيان</title>
+
+<!-- إعدادات التطبيق عند إضافته للشاشة الرئيسية -->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="بن دبيان" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#16110d" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<!-- أيقونة التطبيق (شعار جمرة بسيط) -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316110d'/%3E%3Cpath d='M50 20c10 14-8 16-6 30 1 9 9 13 16 10 8-4 10-14 6-22 10 8 14 22 6 34-9 13-29 15-40 4-10-10-9-26 0-36 5-6 12-12 18-20z' fill='%23e8541e'/%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316110d'/%3E%3Cpath d='M50 20c10 14-8 16-6 30 1 9 9 13 16 10 8-4 10-14 6-22 10 8 14 22 6 34-9 13-29 15-40 4-10-10-9-26 0-36 5-6 12-12 18-20z' fill='%23e8541e'/%3E%3C/svg%3E" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
+
+<style>
+  html, body { margin: 0; padding: 0; background: #16110d; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useMemo, useRef, useEffect } = React;
+
+// ---------- خط الأيقونات المبسط ----------
+function Icon({ name, size = 18, strokeWidth = 1.8 }) {
+  const common = {
+    width: size, height: size, viewBox: "0 0 24 24", fill: "none",
+    stroke: "currentColor", strokeWidth, strokeLinecap: "round", strokeLinejoin: "round",
+  };
+  const paths = {
+    flame: <svg {...common}><path d="M12 3c2.5 3 -1 4 -1.2 7 -0.2 2.2 1.8 3.2 3.5 2.4 2-1 2.4-3.4 1.2-5.4 2.6 2 3.4 5.4 1.4 8.2-2.2 3-6.8 3.6-9.4 1-2.2-2.2-2-6 0-8.4C8.7 6 10.2 4.8 12 3z"/></svg>,
+    cart: <svg {...common}><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.4l2.2 12.2a2 2 0 0 0 2 1.6h8.6a2 2 0 0 0 2-1.6L21.5 7H6"/></svg>,
+    search: <svg {...common}><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>,
+    plus: <svg {...common}><path d="M12 5v14M5 12h14"/></svg>,
+    minus: <svg {...common}><path d="M5 12h14"/></svg>,
+    x: <svg {...common}><path d="M6 6l12 12M18 6L6 18"/></svg>,
+    "map-pin": <svg {...common}><path d="M12 21s7-6.1 7-11.5a7 7 0 1 0-14 0C5 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.3"/></svg>,
+    phone: <svg {...common}><path d="M5 4h3l1.5 4.5-2 1.7a12 12 0 0 0 6.3 6.3l1.7-2L20 16v3a1.5 1.5 0 0 1-1.6 1.5A16 16 0 0 1 3.5 5.6 1.5 1.5 0 0 1 5 4z"/></svg>,
+    clock: <svg {...common}><circle cx="12" cy="12" r="8.5"/><path d="M12 8v4l3 2"/></svg>,
+    trash: <svg {...common}><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 12a2 2 0 0 0 2 1.9h4a2 2 0 0 0 2-1.9l1-12"/></svg>,
+    check: <svg {...common}><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>,
+    "arrow-right": <svg {...common}><path d="M19 12H5m6-7-7 7 7 7"/></svg>,
+    "arrow-left": <svg {...common}><path d="M5 12h14m-6-7 7 7-7 7"/></svg>,
+    bike: <svg {...common}><circle cx="6" cy="17" r="3.3"/><circle cx="18" cy="17" r="3.3"/><path d="M6 17l4-8h3l3 5h2M10 9H8m2 0 2.5 5"/></svg>,
+    store: <svg {...common}><path d="M4 9.5 5.5 4h13L20 9.5M4 9.5v0a2.5 2.5 0 0 0 5 0m0 0a2.5 2.5 0 0 0 5 0m0 0a2.5 2.5 0 0 0 5 0M5 10v9h14v-9"/></svg>,
+    "message-circle": <svg {...common}><path d="M21 11.5a8.4 8.4 0 0 1-8.9 8.4 8.7 8.7 0 0 1-3.8-.9L3 20l1.1-5A8.4 8.4 0 1 1 21 11.5z"/></svg>,
+    receipt: <svg {...common}><path d="M6 3h12v18l-2.5-1.6L13 21l-2.5-1.6L8 21l-2-1.6V3z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>,
+    "chef-hat": <svg {...common}><path d="M7 9a4 4 0 0 1 1.3-7.5A4.6 4.6 0 0 1 12 3a4.6 4.6 0 0 1 3.7-1.5A4 4 0 0 1 17 9v6H7V9z"/><path d="M7 21h10M8 15h8"/></svg>,
+    utensils: <svg {...common}><path d="M5 3v7a2 2 0 0 0 2 2v9M5 3v5M9 3v5M5 8h4M14 3l-1 9 2 2v9M17 3l1 9-2 2"/></svg>,
+    sandwich: <svg {...common}><path d="M4 12h16M5 12l1-4h12l1 4M4 12v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3M6 17l1 3h10l1-3"/></svg>,
+    pot: <svg {...common}><path d="M4 11h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-3z"/><path d="M2 11h20M8 11V8a1 1 0 0 1 1-1M16 11V8a1 1 0 0 1-1-1M12 3v2"/></svg>,
+    salad: <svg {...common}><path d="M4 13a8 8 0 0 1 16 0"/><path d="M4 13h16l-1.3 6a2 2 0 0 1-2 1.6H7.3a2 2 0 0 1-2-1.6L4 13z"/><path d="M12 13V7M9 5.5 12 7l3-1.5"/></svg>,
+    cup: <svg {...common}><path d="M7 9h10l-1 10a2 2 0 0 1-2 1.8h-4A2 2 0 0 1 8 19L7 9z"/><path d="M6 9h12l-.5-3a1.5 1.5 0 0 0-1.5-1.3H8a1.5 1.5 0 0 0-1.5 1.3L6 9z"/></svg>,
+    coffee: <svg {...common}><path d="M5 9h11v6a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V9z"/><path d="M16 10h1.5a2.3 2.3 0 0 1 0 4.6H16"/><path d="M8 4c0 1-1 1-1 2M12 4c0 1-1 1-1 2"/></svg>,
+    gift: <svg {...common}><rect x="4" y="9" width="16" height="11" rx="1"/><path d="M4 13h16M12 9v11"/><path d="M12 9C9 9 8 7.5 8 6.3 8 5 9 4 10.2 4 11.7 4 12 6.5 12 9zm0 0c3 0 4-1.5 4-2.7C16 5 15 4 13.8 4 12.3 4 12 6.5 12 9z"/></svg>,
+    star: <svg {...common}><path d="M12 3.5l2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6-4.5-4.1 6-.7z"/></svg>,
+  };
+  return paths[name] || <svg {...common}><circle cx="12" cy="12" r="8"/></svg>;
+}
+
+// ---------- بيانات القائمة ----------
+const MENU = [
+  { id: "grills", name: "المشاوي على الفحم", note: "السعر لكل 1 كيلوغرام", icon: "flame",
+    items: [
+      { name: "كفتة", price: 140 }, { name: "فخدين الدجاج", price: 70 },
+      { name: "فيلي دجاج", price: 120 }, { name: "قطبان اللحم", price: 150 },
+      { name: "قطبان الكبدة", price: 170 }, { name: "كوطليط", price: 170 },
+      { name: "كفتة لحم رجيم", price: 160 }, { name: "صولوميو", price: 150 },
+      { name: "دجاج مشوي", price: 65 }, { name: "صوصيط كفتة (سيخ شوي)", price: 140 },
+      { name: "صوصيط دجاج (سيخ شوي)", price: 120 }, { name: "مبخار", price: 160 },
+      { name: "دجاج محمر", price: 120 },
+    ] },
+  { id: "tacos", name: "تاكوس", icon: "utensils",
+    items: [
+      { name: "تاكوس دجاج", sizes: { "صغير": 25, "متوسط": 30, "كبير": 35 } },
+      { name: "تاكوس كفتة", sizes: { "صغير": 25, "متوسط": 30, "كبير": 35 } },
+      { name: "تاكوس ميكس", sizes: { "صغير": 25, "متوسط": 30, "كبير": 35 } },
+    ] },
+  { id: "sandwiches", name: "السندويشات", icon: "sandwich",
+    items: [
+      { name: "سندويش دجاج", sizes: { "صغير": 15, "متوسط": 20, "كبير": 25 } },
+      { name: "سندويش كفتة", sizes: { "صغير": 15, "متوسط": 20, "كبير": 25 } },
+      { name: "سندويش ميكس", sizes: { "صغير": 15, "متوسط": 20, "كبير": 25 } },
+    ] },
+  { id: "shawarma", name: "الشاورما", icon: "sandwich",
+    items: [
+      { name: "شاورما تاكوس", price: 30 }, { name: "شاورما خبز", price: 30 },
+      { name: "شاورما نزومال", price: 25 },
+    ] },
+  { id: "burger", name: "البرغر", icon: "sandwich",
+    items: [
+      { name: "برغر شيف", price: 25 }, { name: "كيبج برغر", price: 40 },
+      { name: "برغر نزومال", price: 30 }, { name: "برغر Chicken", price: 30 },
+    ] },
+  { id: "tagine", name: "الطواجن", icon: "pot",
+    items: [
+      { name: "طاجين كفتة", price: 35 }, { name: "طاجين لحم", price: 40 },
+      { name: "طاجين الفتش", price: 30 }, { name: "طاجين كفتة (فراخ)", price: 25 },
+      { name: "طاجين لحم الراس", price: 30 }, { name: "طاجين لوبيا", price: 15 },
+    ] },
+  { id: "salads", name: "السلطات", icon: "salad",
+    items: [{ name: "سلطة عربية", price: 15 }, { name: "سلطة نسواز", price: 25 }] },
+  { id: "sides", name: "المقليات والإضافات", icon: "utensils",
+    items: [
+      { name: "فريت", price: 10 }, { name: "طورطية كبيرة", price: 20 },
+      { name: "كروكيت (الواحد)", price: 5 },
+    ] },
+  { id: "drinks", name: "المشروبات", icon: "cup",
+    items: [
+      { name: "كولا", price: 6 }, { name: "كوكاكولا لايت", price: 6 },
+      { name: "فانتا", price: 6 }, { name: "فانتا ليمون", price: 6 },
+      { name: "شيبس مان", price: 6 }, { name: "سينوس مانجو", price: 6 },
+      { name: "ماء معدني 0.5L", price: 4 }, { name: "ماء معدني", price: 6 },
+    ] },
+  { id: "soda", name: "مشروبات غازية (0.5 لتر)", icon: "cup",
+    items: [
+      { name: "كوكا", price: 10 }, { name: "هواي أناناس", price: 10 },
+      { name: "هواي تروبيكال", price: 10 }, { name: "فانتا ليمون", price: 10 },
+      { name: "فانتا برتقال", price: 10 }, { name: "شويبس", price: 10 },
+    ] },
+  { id: "tea", name: "الشاي", icon: "coffee",
+    items: [
+      { name: "كأس أتاي", price: 5 }, { name: "براد صغير", price: 10 },
+      { name: "براد متوسط", price: 15 }, { name: "براد كبير", price: 20 },
+    ] },
+  { id: "combos", name: "عروض مميزة", icon: "gift",
+    items: [
+      { name: "MENU تاكوس (تاكوس + فريت + مشروب)", price: 35 },
+      { name: "MENU سندويش (سندويش + فريت + مشروب)", price: 25 },
+      { name: "عرض العائلة (1.5كغ مشاوي + فريت كبير + مشروب 1.5L)", price: 199 },
+    ] },
+  { id: "friday", name: "خاص يوم الجمعة", icon: "star",
+    items: [{ name: "كسكس مغربي أصيل", price: 35 }] },
+];
+
+const RESTAURANT = {
+  name: "شواية بن دبيان",
+  tagline: "مشاوي على الفحم — طعم الأصالة والجودة",
+  phone: "0639444163",
+  address: "حي بن ديبان - الفنيدق",
+  hours: "من 14:00 زوالاً إلى 01:30 صباحاً",
+};
+
+// رقم الواتساب الذي تُرسل إليه الطلبات
+const OWNER_WHATSAPP = "0762487466";
+
+// ---------- أدوات مساعدة ----------
+function lineKey(item, size) { return size ? `${item.name}__${size}` : item.name; }
+function fmt(n) { return `${n} درهم`; }
+function modeLabel(mode) { return mode === "delivery" ? "توصيل" : "استلام من المحل"; }
+function formatDate(ts) {
+  return new Date(ts).toLocaleString("ar-MA", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+// ---------- خلفية الجمر ----------
+function EmberField() {
+  const embers = useMemo(() => Array.from({ length: 18 }).map((_, i) => ({
+    id: i, left: Math.random() * 100, delay: Math.random() * 8,
+    duration: 6 + Math.random() * 6, size: 2 + Math.random() * 3,
+  })), []);
+  return (
+    <div className="ember-field" aria-hidden="true">
+      {embers.map((e) => (
+        <span key={e.id} className="ember" style={{
+          left: `${e.left}%`, animationDelay: `${e.delay}s`,
+          animationDuration: `${e.duration}s`, width: e.size, height: e.size,
+        }} />
+      ))}
+    </div>
+  );
+}
+
+// ---------- نافذة اختيار الحجم ----------
+function SizeModal({ item, onClose, onAdd }) {
+  const [size, setSize] = useState(Object.keys(item.sizes)[0]);
+  const [qty, setQty] = useState(1);
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-handle" />
+        <div className="modal-head">
+          <h3>{item.name}</h3>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" size={20} /></button>
+        </div>
+        <div className="size-grid">
+          {Object.entries(item.sizes).map(([s, p]) => (
+            <button key={s} className={`size-chip ${size === s ? "size-chip-active" : ""}`} onClick={() => setSize(s)}>
+              <span>{s}</span>
+              <span className="size-chip-price">{fmt(p)}</span>
+            </button>
+          ))}
+        </div>
+        <div className="qty-row">
+          <span className="qty-label">الكمية</span>
+          <div className="qty-control">
+            <button className="qty-btn" onClick={() => setQty((q) => Math.max(1, q - 1))}><Icon name="minus" size={16} /></button>
+            <span className="qty-num">{qty}</span>
+            <button className="qty-btn" onClick={() => setQty((q) => q + 1)}><Icon name="plus" size={16} /></button>
+          </div>
+        </div>
+        <button className="add-btn" onClick={() => { onAdd(item, size, qty); onClose(); }}>
+          <span>أضف للسلة</span>
+          <span className="add-btn-price">{fmt(item.sizes[size] * qty)}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---------- سلة الطلبات ----------
+function CartDrawer({ cart, onClose, onQty, onRemove, onCheckout, total }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="cart-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-handle" />
+        <div className="modal-head">
+          <h3>سلتك</h3>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" size={20} /></button>
+        </div>
+        {cart.length === 0 ? (
+          <div className="empty-cart">
+            <Icon name="cart" size={40} strokeWidth={1.2} />
+            <p>السلة فارغة الآن</p>
+            <span>اختر شيئاً من القائمة لتبدأ طلبك</span>
+          </div>
+        ) : (
+          <>
+            <div className="cart-list">
+              {cart.map((line) => (
+                <div className="cart-line" key={line.key}>
+                  <button className="cart-remove" onClick={() => onRemove(line.key)}><Icon name="trash" size={16} /></button>
+                  <div className="cart-line-info">
+                    <span className="cart-line-name">{line.name}</span>
+                    {line.size && <span className="cart-line-size">{line.size}</span>}
+                    <span className="cart-line-price">{fmt(line.unitPrice)}</span>
+                  </div>
+                  <div className="qty-control qty-control-sm">
+                    <button className="qty-btn" onClick={() => onQty(line.key, -1)}><Icon name="minus" size={14} /></button>
+                    <span className="qty-num">{line.qty}</span>
+                    <button className="qty-btn" onClick={() => onQty(line.key, 1)}><Icon name="plus" size={14} /></button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="cart-summary">
+              <div className="cart-total-row"><span>المجموع</span><span className="cart-total-value">{fmt(total)}</span></div>
+              <button className="checkout-btn" onClick={onCheckout}><span>متابعة الطلب</span><Icon name="arrow-left" size={18} /></button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------- طلباتي ----------
+function OrdersModal({ orders, onClose }) {
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="cart-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-handle" />
+        <div className="modal-head">
+          <h3>طلباتي</h3>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" size={20} /></button>
+        </div>
+        {orders.length === 0 ? (
+          <div className="empty-cart">
+            <Icon name="receipt" size={40} strokeWidth={1.2} />
+            <p>لا توجد طلبات بعد</p>
+            <span>ستظهر هنا كل الطلبات التي ترسلها</span>
+          </div>
+        ) : (
+          <div className="orders-list">
+            {orders.map((o) => (
+              <div className="order-card" key={o.id}>
+                <div className="order-card-head">
+                  <span className="order-date">{formatDate(o.timestamp)}</span>
+                  <span className="order-mode-tag">{modeLabel(o.mode)}</span>
+                </div>
+                <div className="order-items">
+                  {o.items.map((it, idx) => (
+                    <span className="order-item-line" key={idx}>{it.name}{it.size ? ` (${it.size})` : ""} × {it.qty}</span>
+                  ))}
+                </div>
+                <div className="order-card-foot">
+                  <span className="order-status">تم الإرسال</span>
+                  <span className="order-total">{fmt(o.total)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------- إتمام الطلب ----------
+function Checkout({ cart, total, onBack, onClose, onPlaceOrder }) {
+  const [mode, setMode] = useState("delivery");
+  const [name, setName] = useState("");
+  const [address, setAddress] = useState("");
+  const [phoneNum, setPhoneNum] = useState("");
+  const [notes, setNotes] = useState("");
+  const [placed, setPlaced] = useState(false);
+  const [lastMessage, setLastMessage] = useState("");
+
+  const canSubmit = name.trim() && phoneNum.trim() && (mode === "pickup" || address.trim());
+
+  function buildMessage() {
+    const lines = cart.map((l) => `• ${l.name}${l.size ? " (" + l.size + ")" : ""} × ${l.qty} = ${fmt(l.unitPrice * l.qty)}`);
+    const parts = [
+      `طلب جديد من تطبيق ${RESTAURANT.name}`,
+      `الاسم: ${name}`, `الهاتف: ${phoneNum}`,
+      mode === "delivery" ? `التوصيل إلى: ${address}` : `الاستلام من المحل`,
+      notes ? `ملاحظات: ${notes}` : null,
+      "—", ...lines, "—", `المجموع: ${fmt(total)}`,
+    ].filter(Boolean);
+    return parts.join("\n");
+  }
+
+  function submit() {
+    if (!canSubmit) return;
+    const message = buildMessage();
+    const order = {
+      id: `order_${Date.now()}`, timestamp: Date.now(), mode, name, phone: phoneNum,
+      address: mode === "delivery" ? address : null, notes,
+      items: cart.map((l) => ({ name: l.name, size: l.size, qty: l.qty, unitPrice: l.unitPrice })),
+      total,
+    };
+    setLastMessage(message);
+    onPlaceOrder(order);
+    setPlaced(true);
+  }
+
+  function whatsappLink() {
+    const digits = OWNER_WHATSAPP.replace(/^0/, "212");
+    return `https://wa.me/${digits}?text=${encodeURIComponent(lastMessage || buildMessage())}`;
+  }
+
+  if (placed) {
+    return (
+      <div className="modal-overlay">
+        <div className="cart-sheet placed-sheet">
+          <div className="placed-icon"><Icon name="check" size={32} strokeWidth={2.5} /></div>
+          <h3 className="placed-title">تم تجهيز طلبك</h3>
+          <p className="placed-sub">أرسل الطلب عبر واتساب أو اتصل بنا مباشرة لتأكيده</p>
+          <a className="whatsapp-btn" href={whatsappLink()} target="_blank" rel="noopener noreferrer">
+            <Icon name="message-circle" size={18} /><span>إرسال عبر واتساب</span>
+          </a>
+          <a className="call-btn" href={`tel:${RESTAURANT.phone}`}><Icon name="phone" size={16} /><span>{RESTAURANT.phone}</span></a>
+          <button className="ghost-btn" onClick={onClose}>إغلاق</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="cart-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-handle" />
+        <div className="modal-head">
+          <button className="icon-btn" onClick={onBack}><Icon name="arrow-right" size={20} /></button>
+          <h3>إتمام الطلب</h3>
+          <button className="icon-btn" onClick={onClose}><Icon name="x" size={20} /></button>
+        </div>
+        <div className="mode-toggle">
+          <button className={`mode-btn ${mode === "delivery" ? "mode-btn-active" : ""}`} onClick={() => setMode("delivery")}>
+            <Icon name="bike" size={18} /><span>توصيل</span>
+          </button>
+          <button className={`mode-btn ${mode === "pickup" ? "mode-btn-active" : ""}`} onClick={() => setMode("pickup")}>
+            <Icon name="store" size={18} /><span>استلام من المحل</span>
+          </button>
+        </div>
+        <div className="form-stack">
+          <label className="field"><span>الاسم الكامل</span><input value={name} onChange={(e) => setName(e.target.value)} placeholder="اكتب اسمك" /></label>
+          <label className="field"><span>رقم الهاتف</span><input value={phoneNum} onChange={(e) => setPhoneNum(e.target.value)} placeholder="06XXXXXXXX" inputMode="tel" /></label>
+          {mode === "delivery" && (
+            <label className="field"><span>عنوان التوصيل</span><input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="الحي، الشارع، رقم المنزل" /></label>
+          )}
+          <label className="field"><span>ملاحظات (اختياري)</span><input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="مثال: بدون بصل" /></label>
+        </div>
+        <div className="cart-summary">
+          <div className="cart-total-row"><span>المجموع</span><span className="cart-total-value">{fmt(total)}</span></div>
+          <button className="checkout-btn" disabled={!canSubmit} onClick={submit}><span>تأكيد الطلب</span><Icon name="arrow-left" size={18} /></button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------- شريط الفئات ----------
+function CategoryRail({ active, onSelect }) {
+  return (
+    <div className="cat-rail">
+      {MENU.map((cat) => (
+        <button key={cat.id} className={`cat-chip ${active === cat.id ? "cat-chip-active" : ""}`} onClick={() => onSelect(cat.id)}>
+          <Icon name={cat.icon} size={16} /><span>{cat.name}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ---------- التطبيق الرئيسي ----------
+function App() {
+  const [query, setQuery] = useState("");
+  const [activeCat, setActiveCat] = useState(MENU[0].id);
+  const [cart, setCart] = useState([]);
+  const [sizeModalItem, setSizeModalItem] = useState(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [ordersOpen, setOrdersOpen] = useState(false);
+  const sectionRefs = useRef({});
+
+  const total = cart.reduce((s, l) => s + l.unitPrice * l.qty, 0);
+  const cartCount = cart.reduce((s, l) => s + l.qty, 0);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await window.storage.get("orders", false);
+        if (res && res.value) setOrders(JSON.parse(res.value));
+      } catch (e) { /* لا توجد طلبات محفوظة بعد */ }
+    })();
+  }, []);
+
+  async function placeOrder(order) {
+    const updated = [order, ...orders];
+    setOrders(updated);
+    try { await window.storage.set("orders", JSON.stringify(updated), false); }
+    catch (e) { console.error("تعذر حفظ الطلب:", e); }
+  }
+
+  function addSimple(item) {
+    const key = lineKey(item);
+    setCart((prev) => {
+      const existing = prev.find((l) => l.key === key);
+      if (existing) return prev.map((l) => (l.key === key ? { ...l, qty: l.qty + 1 } : l));
+      return [...prev, { key, name: item.name, size: null, unitPrice: item.price, qty: 1 }];
+    });
+  }
+
+  function addSized(item, size, qty) {
+    const key = lineKey(item, size);
+    setCart((prev) => {
+      const existing = prev.find((l) => l.key === key);
+      if (existing) return prev.map((l) => (l.key === key ? { ...l, qty: l.qty + qty } : l));
+      return [...prev, { key, name: item.name, size, unitPrice: item.sizes[size], qty }];
+    });
+  }
+
+  function changeQty(key, delta) {
+    setCart((prev) => prev.map((l) => (l.key === key ? { ...l, qty: l.qty + delta } : l)).filter((l) => l.qty > 0));
+  }
+
+  function removeLine(key) { setCart((prev) => prev.filter((l) => l.key !== key)); }
+
+  const filteredMenu = useMemo(() => {
+    if (!query.trim()) return MENU;
+    const q = query.trim().toLowerCase();
+    return MENU.map((cat) => ({ ...cat, items: cat.items.filter((it) => it.name.toLowerCase().includes(q)) })).filter((cat) => cat.items.length > 0);
+  }, [query]);
+
+  function scrollToCat(id) {
+    setActiveCat(id);
+    sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  return (
+    <div className="app-root" dir="rtl">
+      <style>{`
+        * { box-sizing: border-box; }
+        .app-root { font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif; background: #16110d; color: #f2e9dc; min-height: 100vh; position: relative; overflow-x: hidden; }
+        .ember-field { position: absolute; inset: 0; height: 280px; overflow: hidden; pointer-events: none; z-index: 0; }
+        .ember { position: absolute; bottom: 0; border-radius: 50%; background: radial-gradient(circle, #ffb347 0%, #e8541e 60%, transparent 100%); box-shadow: 0 0 6px 1px rgba(232,84,30,0.7); animation-name: rise; animation-timing-function: ease-out; animation-iteration-count: infinite; }
+        @keyframes rise { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(-260px) translateX(12px); opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) { .ember { animation: none; display: none; } }
+        .hero { position: relative; z-index: 1; padding: 36px 20px 24px; background: radial-gradient(120% 100% at 50% 0%, #2a1a10 0%, #16110d 70%); border-bottom: 1px solid #2e2218; }
+        .hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 0.5px; color: #e8541e; font-weight: 600; margin-bottom: 10px; }
+        .hero-title { font-family: 'Tajawal', sans-serif; font-weight: 800; font-size: 30px; margin: 0 0 6px; color: #fdf6ec; text-shadow: 0 0 24px rgba(232,84,30,0.25); }
+        .hero-tagline { color: #c9b8a3; font-size: 14px; margin: 0 0 18px; }
+        .hero-meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: #b8a794; }
+        .hero-meta span { display: inline-flex; align-items: center; gap: 5px; }
+        .search-wrap { padding: 16px 20px 8px; position: relative; z-index: 1; }
+        .search-row { display: flex; align-items: center; gap: 10px; }
+        .search-box { flex: 1; display: flex; align-items: center; gap: 8px; background: #211a14; border: 1px solid #382a1e; border-radius: 14px; padding: 11px 14px; }
+        .search-box input { background: transparent; border: none; outline: none; color: #f2e9dc; font-size: 14px; width: 100%; font-family: inherit; }
+        .search-box input::placeholder { color: #7d6c5b; }
+        .orders-btn { position: relative; flex-shrink: 0; width: 46px; height: 46px; border-radius: 14px; border: 1px solid #382a1e; background: #211a14; color: #e8541e; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .orders-btn-badge { position: absolute; top: -5px; left: -5px; background: #e8541e; color: #fff5ec; font-size: 10px; font-weight: 700; min-width: 17px; height: 17px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+        .cat-rail { display: flex; gap: 8px; overflow-x: auto; padding: 14px 20px 6px; scrollbar-width: none; position: sticky; top: 0; z-index: 5; background: #16110d; border-bottom: 1px solid #241b13; }
+        .cat-rail::-webkit-scrollbar { display: none; }
+        .cat-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; border: 1px solid #382a1e; background: #1e1710; color: #c9b8a3; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
+        .cat-chip-active { background: linear-gradient(135deg, #e8541e, #c23c12); border-color: #e8541e; color: #fff5ec; box-shadow: 0 2px 12px rgba(232,84,30,0.35); }
+        .menu-wrap { padding: 8px 20px 120px; position: relative; z-index: 1; }
+        .cat-section { padding: 22px 0 6px; }
+        .cat-section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+        .cat-section-head h2 { font-family: 'Tajawal', sans-serif; font-size: 18px; font-weight: 700; margin: 0; color: #fdf6ec; }
+        .cat-icon-badge { width: 30px; height: 30px; border-radius: 9px; background: rgba(232,84,30,0.14); color: #e8541e; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .cat-note { font-size: 12px; color: #8a7d6f; margin: 0 0 12px 38px; }
+        .item-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 4px; border-bottom: 1px solid #241b13; }
+        .item-info { display: flex; flex-direction: column; gap: 4px; }
+        .item-name { font-size: 14.5px; font-weight: 500; color: #f2e9dc; }
+        .item-price { font-size: 13px; color: #e8541e; font-weight: 600; }
+        .item-price-range { font-size: 12px; color: #8a7d6f; }
+        .add-round { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; background: #241b13; border: 1px solid #3a2c1e; color: #e8541e; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; }
+        .add-round:active { transform: scale(0.9); background: #e8541e; color: #fff; }
+        .empty-search { text-align: center; padding: 60px 20px; color: #7d6c5b; }
+        .cart-fab { position: fixed; bottom: 18px; left: 16px; right: 16px; z-index: 20; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #e8541e, #c23c12); border-radius: 16px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 30px rgba(232,84,30,0.4), 0 0 0 1px rgba(255,255,255,0.08) inset; cursor: pointer; border: none; color: #fff5ec; font-family: inherit; animation: fab-in 0.3s ease; }
+        @keyframes fab-in { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .cart-fab-left { display: flex; align-items: center; gap: 10px; }
+        .cart-fab-badge { background: rgba(255,255,255,0.22); border-radius: 999px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
+        .cart-fab-label { font-size: 14px; font-weight: 600; }
+        .cart-fab-total { font-size: 15px; font-weight: 800; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(10,7,5,0.72); display: flex; align-items: flex-end; justify-content: center; z-index: 50; backdrop-filter: blur(2px); }
+        .modal-sheet, .cart-sheet { background: #1b1510; width: 100%; max-width: 480px; border-radius: 22px 22px 0 0; padding: 10px 20px 24px; max-height: 86vh; overflow-y: auto; animation: sheet-up 0.25s cubic-bezier(0.16,1,0.3,1); border-top: 1px solid #3a2c1e; }
+        @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-handle { width: 40px; height: 4px; border-radius: 999px; background: #3a2c1e; margin: 6px auto 14px; }
+        .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .modal-head h3 { font-family: 'Tajawal', sans-serif; font-size: 18px; margin: 0; color: #fdf6ec; }
+        .icon-btn { background: #241b13; border: none; color: #c9b8a3; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .size-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+        .size-chip { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 12px; border: 1px solid #382a1e; background: #211a14; color: #c9b8a3; cursor: pointer; font-family: inherit; }
+        .size-chip-active { border-color: #e8541e; background: rgba(232,84,30,0.12); color: #fdf6ec; }
+        .size-chip-price { font-size: 12px; color: #e8541e; font-weight: 700; }
+        .qty-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .qty-label { font-size: 14px; color: #c9b8a3; }
+        .qty-control { display: flex; align-items: center; gap: 12px; background: #211a14; border-radius: 12px; padding: 6px 10px; }
+        .qty-control-sm { padding: 4px 8px; gap: 8px; }
+        .qty-btn { width: 26px; height: 26px; border-radius: 8px; border: none; background: #302416; color: #f2e9dc; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .qty-num { min-width: 18px; text-align: center; font-weight: 700; font-size: 14px; }
+        .add-btn, .checkout-btn { width: 100%; border: none; border-radius: 14px; padding: 15px 18px; background: linear-gradient(135deg, #e8541e, #c23c12); color: #fff5ec; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+        .checkout-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .add-btn-price { font-weight: 800; }
+        .empty-cart { text-align: center; padding: 50px 10px; color: #8a7d6f; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .empty-cart p { font-weight: 600; color: #c9b8a3; margin: 4px 0 0; }
+        .empty-cart span { font-size: 13px; }
+        .cart-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+        .cart-line { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #241b13; }
+        .cart-remove { background: none; border: none; color: #7d6c5b; cursor: pointer; padding: 4px; }
+        .cart-line-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+        .cart-line-name { font-size: 14px; font-weight: 500; color: #f2e9dc; }
+        .cart-line-size { font-size: 11px; color: #8a7d6f; }
+        .cart-line-price { font-size: 12.5px; color: #e8541e; font-weight: 600; }
+        .cart-summary { border-top: 1px solid #241b13; padding-top: 16px; margin-top: 6px; }
+        .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #c9b8a3; }
+        .cart-total-value { color: #fdf6ec; font-weight: 800; font-size: 18px; }
+        .mode-toggle { display: flex; gap: 8px; margin-bottom: 18px; }
+        .mode-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; border: 1px solid #382a1e; background: #211a14; color: #c9b8a3; cursor: pointer; font-family: inherit; font-size: 13.5px; font-weight: 600; }
+        .mode-btn-active { border-color: #e8541e; background: rgba(232,84,30,0.12); color: #fdf6ec; }
+        .form-stack { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field span { font-size: 12.5px; color: #8a7d6f; }
+        .field input { background: #211a14; border: 1px solid #382a1e; border-radius: 11px; padding: 12px 14px; color: #f2e9dc; font-size: 14px; outline: none; font-family: inherit; }
+        .field input:focus { border-color: #e8541e; }
+        .placed-sheet { text-align: center; padding: 30px 24px 30px; }
+        .placed-icon { width: 60px; height: 60px; border-radius: 50%; margin: 6px auto 16px; background: rgba(232,84,30,0.15); color: #e8541e; display: flex; align-items: center; justify-content: center; }
+        .placed-title { font-family: 'Tajawal', sans-serif; font-size: 19px; margin: 0 0 6px; color: #fdf6ec; }
+        .placed-sub { color: #8a7d6f; font-size: 13.5px; margin: 0 0 22px; }
+        .whatsapp-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: #25d366; color: #06280f; text-decoration: none; padding: 14px; border-radius: 13px; font-weight: 700; font-size: 14.5px; margin-bottom: 10px; }
+        .call-btn { display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #382a1e; color: #f2e9dc; text-decoration: none; padding: 13px; border-radius: 13px; font-weight: 600; font-size: 14px; margin-bottom: 14px; }
+        .ghost-btn { background: none; border: none; color: #8a7d6f; font-size: 13.5px; cursor: pointer; font-family: inherit; }
+        .orders-list { display: flex; flex-direction: column; gap: 10px; }
+        .order-card { background: #211a14; border: 1px solid #302416; border-radius: 14px; padding: 14px; }
+        .order-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .order-date { font-size: 12px; color: #8a7d6f; }
+        .order-mode-tag { font-size: 11px; color: #e8541e; background: rgba(232,84,30,0.12); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+        .order-items { display: flex; flex-direction: column; gap: 3px; margin-bottom: 10px; }
+        .order-item-line { font-size: 13px; color: #c9b8a3; }
+        .order-card-foot { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #241b13; padding-top: 10px; }
+        .order-status { font-size: 12px; color: #6fbf73; font-weight: 600; }
+        .order-total { font-size: 14.5px; font-weight: 800; color: #fdf6ec; }
+      `}</style>
+
+      <div className="hero">
+        <EmberField />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div className="hero-eyebrow"><Icon name="flame" size={14} /> مشوي على الفحم يومياً</div>
+          <h1 className="hero-title">{RESTAURANT.name}</h1>
+          <p className="hero-tagline">{RESTAURANT.tagline}</p>
+          <div className="hero-meta">
+            <span><Icon name="map-pin" size={13} /> {RESTAURANT.address}</span>
+            <span><Icon name="clock" size={13} /> {RESTAURANT.hours}</span>
+            <span><Icon name="phone" size={13} /> {RESTAURANT.phone}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="search-wrap">
+        <div className="search-row">
+          <div className="search-box">
+            <Icon name="search" size={16} />
+            <input placeholder="ابحث عن طبق..." value={query} onChange={(e) => setQuery(e.target.value)} />
+          </div>
+          <button className="orders-btn" onClick={() => setOrdersOpen(true)}>
+            <Icon name="receipt" size={17} />
+            {orders.length > 0 && <span className="orders-btn-badge">{orders.length}</span>}
+          </button>
+        </div>
+      </div>
+
+      {!query.trim() && <CategoryRail active={activeCat} onSelect={scrollToCat} />}
+
+      <div className="menu-wrap">
+        {filteredMenu.length === 0 && (
+          <div className="empty-search"><Icon name="chef-hat" size={36} strokeWidth={1.2} /><p>لم نجد طبقاً يطابق بحثك</p></div>
+        )}
+        {filteredMenu.map((cat) => (
+          <div key={cat.id} className="cat-section" ref={(el) => (sectionRefs.current[cat.id] = el)}>
+            <div className="cat-section-head">
+              <div className="cat-icon-badge"><Icon name={cat.icon} size={16} /></div>
+              <h2>{cat.name}</h2>
+            </div>
+            {cat.note && <p className="cat-note">{cat.note}</p>}
+            <div>
+              {cat.items.map((item) => (
+                <div className="item-card" key={item.name}>
+                  <div className="item-info">
+                    <span className="item-name">{item.name}</span>
+                    {item.sizes ? (
+                      <span className="item-price-range">من {fmt(Math.min(...Object.values(item.sizes)))}</span>
+                    ) : (
+                      <span className="item-price">{fmt(item.price)}</span>
+                    )}
+                  </div>
+                  <button className="add-round" onClick={() => (item.sizes ? setSizeModalItem(item) : addSimple(item))}>
+                    <Icon name="plus" size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {cartCount > 0 && !cartOpen && !checkoutOpen && (
+        <button className="cart-fab" onClick={() => setCartOpen(true)}>
+          <div className="cart-fab-left">
+            <span className="cart-fab-badge">{cartCount}</span>
+            <span className="cart-fab-label">عرض السلة</span>
+          </div>
+          <span className="cart-fab-total">{fmt(total)}</span>
+        </button>
+      )}
+
+      {sizeModalItem && <SizeModal item={sizeModalItem} onClose={() => setSizeModalItem(null)} onAdd={addSized} />}
+
+      {cartOpen && !checkoutOpen && (
+        <CartDrawer cart={cart} total={total} onClose={() => setCartOpen(false)} onQty={changeQty} onRemove={removeLine} onCheckout={() => setCheckoutOpen(true)} />
+      )}
+
+      {checkoutOpen && (
+        <Checkout cart={cart} total={total} onBack={() => setCheckoutOpen(false)}
+          onClose={() => { setCheckoutOpen(false); setCartOpen(false); setCart([]); }}
+          onPlaceOrder={placeOrder} />
+      )}
+
+      {ordersOpen && <OrdersModal orders={orders} onClose={() => setOrdersOpen(false)} />}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
