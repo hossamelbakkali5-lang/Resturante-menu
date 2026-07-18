@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<title>شواية بن ديبان</title>
+<title>تطبيق ولوحة تحكم شواية بن ديبان</title>
 
 <!-- إعدادات التطبيق عند إضافته للشاشة الرئيسية -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -15,17 +15,70 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap" rel="stylesheet" />
 
-<!-- أيقونة التطبيق (شعار جمرة بسيط) -->
+<!-- أيقونة التطبيق -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316110d'/%3E%3Cpath d='M50 20c10 14-8 16-6 30 1 9 9 13 16 10 8-4 10-14 6-22 10 8 14 22 6 34-9 13-29 15-40 4-10-10-9-26 0-36 5-6 12-12 18-20z' fill='%23e8541e'/%3E%3C/svg%3E" />
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%2316110d'/%3E%3Cpath d='M50 20c10 14-8 16-6 30 1 9 9 13 16 10 8-4 10-14 6-22 10 8 14 22 6 34-9 13-29 15-40 4-10-10-9-26 0-36 5-6 12-12 18-20z' fill='%23e8541e'/%3E%3C/svg%3E" />
 
+<!-- مكتبات ريأكت -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js"></script>
 
+<!-- مكتبات Firebase المتوافقة مع بنية التطبيق الحالية -->
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
 <style>
-  html, body { margin: 0; padding: 0; background: #16110d; }
+  :root {
+    --bg-dark: #16110d;
+    --bg-card: #211a14;
+    --text-main: #f2e9dc;
+    --text-muted: #8a7d6f;
+    --accent-color: #e8541e;
+    --border: #382a1e;
+    --preparing: #3b82f6;    
+    --delivered: #10b981;    
+    --out-of-stock: #ef4444; 
+  }
+
+  html, body { 
+    margin: 0; 
+    padding: 0; 
+    background: var(--bg-dark); 
+    color: var(--text-main);
+    font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif;
+  }
+  
   #root { min-height: 100vh; }
+  * { box-sizing: border-box; }
+
+  /* شريط التنقل العلوي بين الزبون والإدارة */
+  .app-navigation {
+    display: flex;
+    background: #1e1710;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-tab {
+    flex: 1;
+    padding: 15px;
+    text-align: center;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Tajawal', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .nav-tab.active {
+    color: var(--accent-color);
+    border-bottom: 3px solid var(--accent-color);
+    background: rgba(232, 84, 30, 0.05);
+  }
 </style>
 </head>
 <body>
@@ -33,6 +86,24 @@
 
 <script type="text/babel" data-presets="react">
 const { useState, useMemo, useRef, useEffect } = React;
+
+// 1. إعداد حساب الفايربيس السحابي الخاص بمشروعك الحقيقي
+const firebaseConfig = {
+  apiKey: "AIzaSyCCyOz5lto-pc6O3n6F46qE8Vv9Ul1R45Q",
+  authDomain: "restaurante-ben-diban.firebaseapp.com",
+  databaseURL: "https://restaurante-ben-diban-default-rtdb.firebaseio.com",
+  projectId: "restaurante-ben-diban",
+  storageBucket: "restaurante-ben-diban.firebasestorage.app",
+  messagingSenderId: "409210616873",
+  appId: "1:409210616873:web:da8afef467b1efc1e93038",
+  measurementId: "G-MYMP58W5E5"
+};
+
+// تشغيل الفايربيس في النظام
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.database();
 
 // ---------- خط الأيقونات المبسط ----------
 function Icon({ name, size = 18, strokeWidth = 1.8 }) {
@@ -107,8 +178,8 @@ const MENU = [
     ] },
   { id: "tagine", name: "الطواجن", icon: "pot",
     items: [
-      { name:"", price: 35 }, { name: "طاجين لحم", price: 40 },
-      { name: "طاجين الفراقش", price: 30 }, { name: "طاجين كفتة ()", price: 25 },
+      { name: "طاجين لحم", price: 40 },
+      { name: "طاجين الفراقش", price: 30 }, { name: "طاجين كفتة", price: 25 },
       { name: "طاجين لحم الراس", price: 30 }, { name: "طاجين لوبيا", price: 15 },
     ] },
   { id: "salads", name: "السلطات", icon: "salad",
@@ -154,10 +225,8 @@ const RESTAURANT = {
   hours: "من 14:00 زوالاً إلى 01:30 صباحاً",
 };
 
-// رقم الواتساب الذي تُرسل إليه الطلبات
 const OWNER_WHATSAPP = "0762487466";
 
-// ---------- أدوات مساعدة ----------
 function lineKey(item, size) { return size ? `${item.name}__${size}` : item.name; }
 function fmt(n) { return `${n} درهم`; }
 function modeLabel(mode) { return mode === "delivery" ? "توصيل" : "استلام من المحل"; }
@@ -268,12 +337,39 @@ function CartDrawer({ cart, onClose, onQty, onRemove, onCheckout, total }) {
 
 // ---------- طلباتي ----------
 function OrdersModal({ orders, onClose }) {
+  const [liveStatuses, setLiveStatuses] = useState({});
+
+  useEffect(() => {
+    if (orders.length === 0) return;
+    
+    const listeners = orders.map(o => {
+      const statusRef = db.ref(`orders/${o.id}/status`);
+      statusRef.on('value', (snapshot) => {
+        const currentStatus = snapshot.val();
+        if (currentStatus) {
+          setLiveStatuses(prev => ({ ...prev, [o.id]: currentStatus }));
+        }
+      });
+      return { ref: statusRef };
+    });
+
+    return () => {
+      listeners.forEach(l => l.ref.off());
+    };
+  }, [orders]);
+
+  function renderStatusLabel(status) {
+    if (status === 'delivered') return <span style={{ color: '#10b981', fontWeight: 'bold' }}>✅ تم التسليم</span>;
+    if (status === 'out') return <span style={{ color: '#ef4444', fontWeight: 'bold' }}>✖ انتهى المخزون</span>;
+    return <span style={{ color: '#3b82f6', fontWeight: 'bold' }}>⏳ قيد التحضير بالمطبخ</span>;
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="cart-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="modal-handle" />
         <div className="modal-head">
-          <h3>طلباتي</h3>
+          <h3>طلباتي المرسلة</h3>
           <button className="icon-btn" onClick={onClose}><Icon name="x" size={20} /></button>
         </div>
         {orders.length === 0 ? (
@@ -296,7 +392,7 @@ function OrdersModal({ orders, onClose }) {
                   ))}
                 </div>
                 <div className="order-card-foot">
-                  <span className="order-status">تم الإرسال</span>
+                  <span className="order-status">الحالة: {renderStatusLabel(liveStatuses[o.id] || 'preparing')}</span>
                   <span className="order-total">{fmt(o.total)}</span>
                 </div>
               </div>
@@ -335,15 +431,26 @@ function Checkout({ cart, total, onBack, onClose, onPlaceOrder }) {
   function submit() {
     if (!canSubmit) return;
     const message = buildMessage();
+    const orderId = `order_${Date.now()}`;
     const order = {
-      id: `order_${Date.now()}`, timestamp: Date.now(), mode, name, phone: phoneNum,
+      id: orderId, timestamp: Date.now(), mode, name, phone: phoneNum,
       address: mode === "delivery" ? address : null, notes,
-      items: cart.map((l) => ({ name: l.name, size: l.size, qty: l.qty, unitPrice: l.unitPrice })),
+      items: cart.map((l) => ({ name: l.name, size: l.size || "", qty: l.qty, unitPrice: l.unitPrice })),
       total,
+      status: 'preparing'
     };
+    
     setLastMessage(message);
-    onPlaceOrder(order);
-    setPlaced(true);
+    
+    db.ref(`orders/${orderId}`).set(order)
+      .then(() => {
+        onPlaceOrder(order);
+        setPlaced(true);
+      })
+      .catch((err) => {
+        alert("حدث خطأ أثناء الاتصال بالسيرفر السحابي. يمكنك إرسال الطلب عبر الواتساب مباشرة.");
+        console.error(err);
+      });
   }
 
   function whatsappLink() {
@@ -356,13 +463,13 @@ function Checkout({ cart, total, onBack, onClose, onPlaceOrder }) {
       <div className="modal-overlay">
         <div className="cart-sheet placed-sheet">
           <div className="placed-icon"><Icon name="check" size={32} strokeWidth={2.5} /></div>
-          <h3 className="placed-title">تم تجهيز طلبك</h3>
-          <p className="placed-sub">أرسل الطلب عبر واتساب أو اتصل بنا مباشرة لتأكيده</p>
+          <h3 className="placed-title">تم إرسال طلبك تلقائياً للوحة التحكم أونلاين</h3>
+          <p className="placed-sub">يرجى أيضاً تأكيد الطلب وإرساله عبر الواتساب لضمان المتابعة المباشرة مع الإدارة</p>
           <a className="whatsapp-btn" href={whatsappLink()} target="_blank" rel="noopener noreferrer">
-            <Icon name="message-circle" size={18} /><span>إرسال عبر واتساب</span>
+            <Icon name="message-circle" size={18} /><span>إرسال عبر واتساب للمطعم</span>
           </a>
-          <a className="call-btn" href={`tel:${RESTAURANT.phone}`}><Icon name="phone" size={16} /><span>{RESTAURANT.phone}</span></a>
-          <button className="ghost-btn" onClick={onClose}>إغلاق</button>
+          <a className="call-btn" href={`tel:${RESTAURANT.phone}`}><Icon name="phone" size={16} /><span>اتصال مباشر: {RESTAURANT.phone}</span></a>
+          <button className="ghost-btn" onClick={onClose}>إغلاق والعودة للمنيو</button>
         </div>
       </div>
     );
@@ -391,11 +498,11 @@ function Checkout({ cart, total, onBack, onClose, onPlaceOrder }) {
           {mode === "delivery" && (
             <label className="field"><span>عنوان التوصيل</span><input value={address} onChange={(e) => setAddress(e.target.value)} placeholder="الحي، الشارع، رقم المنزل" /></label>
           )}
-          <label className="field"><span>ملاحظات (اختياري)</span><input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="مثال: بدون بصل" /></label>
+          <label className="field"><span>ملاحظات (اختياري)</span><input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="مثال: بدون بصل، زيادة فريت" /></label>
         </div>
         <div className="cart-summary">
           <div className="cart-total-row"><span>المجموع</span><span className="cart-total-value">{fmt(total)}</span></div>
-          <button className="checkout-btn" disabled={!canSubmit} onClick={submit}><span>تأكيد الطلب</span><Icon name="arrow-left" size={18} /></button>
+          <button className="checkout-btn" disabled={!canSubmit} onClick={submit}><span>تأكيد وإرسال الطلب</span><Icon name="arrow-left" size={18} /></button>
         </div>
       </div>
     </div>
@@ -415,36 +522,19 @@ function CategoryRail({ active, onSelect }) {
   );
 }
 
-// ---------- التطبيق الرئيسي ----------
-function App() {
+// ---------- واجهة العميل الكاملة ----------
+function CustomerView({ onOrderPlaced, orders }) {
   const [query, setQuery] = useState("");
   const [activeCat, setActiveCat] = useState(MENU[0].id);
   const [cart, setCart] = useState([]);
   const [sizeModalItem, setSizeModalItem] = useState(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [orders, setOrders] = useState([]);
   const [ordersOpen, setOrdersOpen] = useState(false);
   const sectionRefs = useRef({});
 
   const total = cart.reduce((s, l) => s + l.unitPrice * l.qty, 0);
   const cartCount = cart.reduce((s, l) => s + l.qty, 0);
-
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await window.storage.get("orders", false);
-        if (res && res.value) setOrders(JSON.parse(res.value));
-      } catch (e) { /* لا توجد طلبات محفوظة بعد */ }
-    })();
-  }, []);
-
-  async function placeOrder(order) {
-    const updated = [order, ...orders];
-    setOrders(updated);
-    try { await window.storage.set("orders", JSON.stringify(updated), false); }
-    catch (e) { console.error("تعذر حفظ الطلب:", e); }
-  }
 
   function addSimple(item) {
     const key = lineKey(item);
@@ -482,104 +572,100 @@ function App() {
   }
 
   return (
-    <div className="app-root" dir="rtl">
+    <div className="customer-view">
       <style>{`
-        * { box-sizing: border-box; }
-        .app-root { font-family: 'IBM Plex Sans Arabic', 'Tajawal', sans-serif; background: #16110d; color: #f2e9dc; min-height: 100vh; position: relative; overflow-x: hidden; }
         .ember-field { position: absolute; inset: 0; height: 280px; overflow: hidden; pointer-events: none; z-index: 0; }
         .ember { position: absolute; bottom: 0; border-radius: 50%; background: radial-gradient(circle, #ffb347 0%, #e8541e 60%, transparent 100%); box-shadow: 0 0 6px 1px rgba(232,84,30,0.7); animation-name: rise; animation-timing-function: ease-out; animation-iteration-count: infinite; }
         @keyframes rise { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 100% { transform: translateY(-260px) translateX(12px); opacity: 0; } }
-        @media (prefers-reduced-motion: reduce) { .ember { animation: none; display: none; } }
-        .hero { position: relative; z-index: 1; padding: 36px 20px 24px; background: radial-gradient(120% 100% at 50% 0%, #2a1a10 0%, #16110d 70%); border-bottom: 1px solid #2e2218; }
-        .hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 0.5px; color: #e8541e; font-weight: 600; margin-bottom: 10px; }
+        .hero { position: relative; z-index: 1; padding: 36px 20px 24px; background: radial-gradient(120% 100% at 50% 0%, #2a1a10 0%, #16110d 70%); border-bottom: 1px solid var(--border); }
+        .hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 0.5px; color: var(--accent-color); font-weight: 600; margin-bottom: 10px; }
         .hero-title { font-family: 'Tajawal', sans-serif; font-weight: 800; font-size: 30px; margin: 0 0 6px; color: #fdf6ec; text-shadow: 0 0 24px rgba(232,84,30,0.25); }
-        .hero-tagline { color: #c9b8a3; font-size: 14px; margin: 0 0 18px; }
+        .hero-tagline { color: var(--text-muted); font-size: 14px; margin: 0 0 18px; }
         .hero-meta { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: #b8a794; }
         .hero-meta span { display: inline-flex; align-items: center; gap: 5px; }
         .search-wrap { padding: 16px 20px 8px; position: relative; z-index: 1; }
         .search-row { display: flex; align-items: center; gap: 10px; }
-        .search-box { flex: 1; display: flex; align-items: center; gap: 8px; background: #211a14; border: 1px solid #382a1e; border-radius: 14px; padding: 11px 14px; }
-        .search-box input { background: transparent; border: none; outline: none; color: #f2e9dc; font-size: 14px; width: 100%; font-family: inherit; }
+        .search-box { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 11px 14px; }
+        .search-box input { background: transparent; border: none; outline: none; color: var(--text-main); font-size: 14px; width: 100%; font-family: inherit; }
         .search-box input::placeholder { color: #7d6c5b; }
-        .orders-btn { position: relative; flex-shrink: 0; width: 46px; height: 46px; border-radius: 14px; border: 1px solid #382a1e; background: #211a14; color: #e8541e; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .orders-btn-badge { position: absolute; top: -5px; left: -5px; background: #e8541e; color: #fff5ec; font-size: 10px; font-weight: 700; min-width: 17px; height: 17px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
-        .cat-rail { display: flex; gap: 8px; overflow-x: auto; padding: 14px 20px 6px; scrollbar-width: none; position: sticky; top: 0; z-index: 5; background: #16110d; border-bottom: 1px solid #241b13; }
+        .orders-btn { position: relative; flex-shrink: 0; width: 46px; height: 46px; border-radius: 14px; border: 1px solid var(--border); background: var(--bg-card); color: var(--accent-color); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .orders-btn-badge { position: absolute; top: -5px; left: -5px; background: var(--accent-color); color: #fff5ec; font-size: 10px; font-weight: 700; min-width: 17px; height: 17px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 3px; }
+        .cat-rail { display: flex; gap: 8px; overflow-x: auto; padding: 14px 20px 6px; scrollbar-width: none; position: sticky; top: 52px; z-index: 5; background: var(--bg-dark); border-bottom: 1px solid #241b13; }
         .cat-rail::-webkit-scrollbar { display: none; }
-        .cat-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; border: 1px solid #382a1e; background: #1e1710; color: #c9b8a3; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
-        .cat-chip-active { background: linear-gradient(135deg, #e8541e, #c23c12); border-color: #e8541e; color: #fff5ec; box-shadow: 0 2px 12px rgba(232,84,30,0.35); }
+        .cat-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--border); background: #1e1710; color: #c9b8a3; font-size: 13px; font-weight: 500; white-space: nowrap; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
+        .cat-chip-active { background: linear-gradient(135deg, var(--accent-color), #c23c12); border-color: var(--accent-color); color: #fff5ec; box-shadow: 0 2px 12px rgba(232,84,30,0.35); }
         .menu-wrap { padding: 8px 20px 120px; position: relative; z-index: 1; }
         .cat-section { padding: 22px 0 6px; }
         .cat-section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
         .cat-section-head h2 { font-family: 'Tajawal', sans-serif; font-size: 18px; font-weight: 700; margin: 0; color: #fdf6ec; }
-        .cat-icon-badge { width: 30px; height: 30px; border-radius: 9px; background: rgba(232,84,30,0.14); color: #e8541e; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .cat-icon-badge { width: 30px; height: 30px; border-radius: 9px; background: rgba(232,84,30,0.14); color: var(--accent-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .cat-note { font-size: 12px; color: #8a7d6f; margin: 0 0 12px 38px; }
         .item-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 4px; border-bottom: 1px solid #241b13; }
         .item-info { display: flex; flex-direction: column; gap: 4px; }
-        .item-name { font-size: 14.5px; font-weight: 500; color: #f2e9dc; }
-        .item-price { font-size: 13px; color: #e8541e; font-weight: 600; }
-        .item-price-range { font-size: 12px; color: #8a7d6f; }
-        .add-round { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; background: #241b13; border: 1px solid #3a2c1e; color: #e8541e; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; }
-        .add-round:active { transform: scale(0.9); background: #e8541e; color: #fff; }
+        .item-name { font-size: 14.5px; font-weight: 500; color: var(--text-main); }
+        .item-price { font-size: 13px; color: var(--accent-color); font-weight: 600; }
+        .item-price-range { font-size: 12px; color: var(--text-muted); }
+        .add-round { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; background: #241b13; border: 1px solid #3a2c1e; color: var(--accent-color); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; }
+        .add-round:active { transform: scale(0.9); background: var(--accent-color); color: #fff; }
         .empty-search { text-align: center; padding: 60px 20px; color: #7d6c5b; }
-        .cart-fab { position: fixed; bottom: 18px; left: 16px; right: 16px; z-index: 20; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, #e8541e, #c23c12); border-radius: 16px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 30px rgba(232,84,30,0.4), 0 0 0 1px rgba(255,255,255,0.08) inset; cursor: pointer; border: none; color: #fff5ec; font-family: inherit; animation: fab-in 0.3s ease; }
-        @keyframes fab-in { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .cart-fab { position: fixed; bottom: 18px; left: 16px; right: 16px; z-index: 20; max-width: 480px; margin: 0 auto; background: linear-gradient(135deg, var(--accent-color), #c23c12); border-radius: 16px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 30px rgba(232,84,30,0.4), 0 0 0 1px rgba(255,255,255,0.08) inset; cursor: pointer; border: none; color: #fff5ec; font-family: inherit; }
         .cart-fab-left { display: flex; align-items: center; gap: 10px; }
         .cart-fab-badge { background: rgba(255,255,255,0.22); border-radius: 999px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; }
         .cart-fab-label { font-size: 14px; font-weight: 600; }
         .cart-fab-total { font-size: 15px; font-weight: 800; }
-        .modal-overlay { position: fixed; inset: 0; background: rgba(10,7,5,0.72); display: flex; align-items: flex-end; justify-content: center; z-index: 50; backdrop-filter: blur(2px); }
-        .modal-sheet, .cart-sheet { background: #1b1510; width: 100%; max-width: 480px; border-radius: 22px 22px 0 0; padding: 10px 20px 24px; max-height: 86vh; overflow-y: auto; animation: sheet-up 0.25s cubic-bezier(0.16,1,0.3,1); border-top: 1px solid #3a2c1e; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(10,7,5,0.72); display: flex; align-items: flex-end; justify-content: center; z-index: 150; backdrop-filter: blur(2px); }
+        .modal-sheet, .cart-sheet { background: #1b1510; width: 100%; max-width: 480px; border-radius: 22px 22px 0 0; padding: 10px 20px 24px; max-height: 86vh; overflow-y: auto; border-top: 1px solid #3a2c1e; animation: sheet-up 0.25s cubic-bezier(0.16,1,0.3,1); }
         @keyframes sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .modal-handle { width: 40px; height: 4px; border-radius: 999px; background: #3a2c1e; margin: 6px auto 14px; }
         .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
         .modal-head h3 { font-family: 'Tajawal', sans-serif; font-size: 18px; margin: 0; color: #fdf6ec; }
         .icon-btn { background: #241b13; border: none; color: #c9b8a3; width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .size-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
-        .size-chip { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 12px; border: 1px solid #382a1e; background: #211a14; color: #c9b8a3; cursor: pointer; font-family: inherit; }
-        .size-chip-active { border-color: #e8541e; background: rgba(232,84,30,0.12); color: #fdf6ec; }
-        .size-chip-price { font-size: 12px; color: #e8541e; font-weight: 700; }
+        .size-chip { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card); color: #c9b8a3; cursor: pointer; font-family: inherit; }
+        .size-chip-active { border-color: var(--accent-color); background: rgba(232,84,30,0.12); color: #fdf6ec; }
+        .size-chip-price { font-size: 12px; color: var(--accent-color); font-weight: 700; }
         .qty-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
         .qty-label { font-size: 14px; color: #c9b8a3; }
-        .qty-control { display: flex; align-items: center; gap: 12px; background: #211a14; border-radius: 12px; padding: 6px 10px; }
+        .qty-control { display: flex; align-items: center; gap: 12px; background: var(--bg-card); border-radius: 12px; padding: 6px 10px; }
         .qty-control-sm { padding: 4px 8px; gap: 8px; }
-        .qty-btn { width: 26px; height: 26px; border-radius: 8px; border: none; background: #302416; color: #f2e9dc; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .qty-btn { width: 26px; height: 26px; border-radius: 8px; border: none; background: #302416; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .qty-num { min-width: 18px; text-align: center; font-weight: 700; font-size: 14px; }
-        .add-btn, .checkout-btn { width: 100%; border: none; border-radius: 14px; padding: 15px 18px; background: linear-gradient(135deg, #e8541e, #c23c12); color: #fff5ec; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+        .add-btn, .checkout-btn { width: 100%; border: none; border-radius: 14px; padding: 15px 18px; background: linear-gradient(135deg, var(--accent-color), #c23c12); color: #fff5ec; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
         .checkout-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .add-btn-price { font-weight: 800; }
-        .empty-cart { text-align: center; padding: 50px 10px; color: #8a7d6f; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .empty-cart { text-align: center; padding: 50px 10px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 10px; }
         .empty-cart p { font-weight: 600; color: #c9b8a3; margin: 4px 0 0; }
         .empty-cart span { font-size: 13px; }
         .cart-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
         .cart-line { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #241b13; }
         .cart-remove { background: none; border: none; color: #7d6c5b; cursor: pointer; padding: 4px; }
         .cart-line-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-        .cart-line-name { font-size: 14px; font-weight: 500; color: #f2e9dc; }
-        .cart-line-size { font-size: 11px; color: #8a7d6f; }
-        .cart-line-price { font-size: 12.5px; color: #e8541e; font-weight: 600; }
+        .cart-line-name { font-size: 14px; font-weight: 500; color: var(--text-main); }
+        .cart-line-size { font-size: 11px; color: var(--text-muted); }
+        .cart-line-price { font-size: 12.5px; color: var(--accent-color); font-weight: 600; }
         .cart-summary { border-top: 1px solid #241b13; padding-top: 16px; margin-top: 6px; }
         .cart-total-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px; color: #c9b8a3; }
         .cart-total-value { color: #fdf6ec; font-weight: 800; font-size: 18px; }
         .mode-toggle { display: flex; gap: 8px; margin-bottom: 18px; }
-        .mode-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; border: 1px solid #382a1e; background: #211a14; color: #c9b8a3; cursor: pointer; font-family: inherit; font-size: 13.5px; font-weight: 600; }
-        .mode-btn-active { border-color: #e8541e; background: rgba(232,84,30,0.12); color: #fdf6ec; }
+        .mode-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-card); color: #c9b8a3; cursor: pointer; font-family: inherit; font-size: 13.5px; font-weight: 600; }
+        .mode-btn-active { border-color: var(--accent-color); background: rgba(232,84,30,0.12); color: #fdf6ec; }
         .form-stack { display: flex; flex-direction: column; gap: 12px; margin-bottom: 18px; }
         .field { display: flex; flex-direction: column; gap: 6px; }
-        .field span { font-size: 12.5px; color: #8a7d6f; }
-        .field input { background: #211a14; border: 1px solid #382a1e; border-radius: 11px; padding: 12px 14px; color: #f2e9dc; font-size: 14px; outline: none; font-family: inherit; }
-        .field input:focus { border-color: #e8541e; }
+        .field span { font-size: 12.5px; color: var(--text-muted); }
+        .field input { background: var(--bg-card); border: 1px solid var(--border); border-radius: 11px; padding: 12px 14px; color: var(--text-main); font-size: 14px; outline: none; font-family: inherit; }
+        .field input:focus { border-color: var(--accent-color); }
         .placed-sheet { text-align: center; padding: 30px 24px 30px; }
-        .placed-icon { width: 60px; height: 60px; border-radius: 50%; margin: 6px auto 16px; background: rgba(232,84,30,0.15); color: #e8541e; display: flex; align-items: center; justify-content: center; }
+        .placed-icon { width: 60px; height: 60px; border-radius: 50%; margin: 6px auto 16px; background: rgba(232,84,30,0.15); color: var(--accent-color); display: flex; align-items: center; justify-content: center; }
         .placed-title { font-family: 'Tajawal', sans-serif; font-size: 19px; margin: 0 0 6px; color: #fdf6ec; }
-        .placed-sub { color: #8a7d6f; font-size: 13.5px; margin: 0 0 22px; }
+        .placed-sub { color: var(--text-muted); font-size: 13.5px; margin: 0 0 22px; }
         .whatsapp-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: #25d366; color: #06280f; text-decoration: none; padding: 14px; border-radius: 13px; font-weight: 700; font-size: 14.5px; margin-bottom: 10px; }
-        .call-btn { display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #382a1e; color: #f2e9dc; text-decoration: none; padding: 13px; border-radius: 13px; font-weight: 600; font-size: 14px; margin-bottom: 14px; }
-        .ghost-btn { background: none; border: none; color: #8a7d6f; font-size: 13.5px; cursor: pointer; font-family: inherit; }
+        .call-btn { display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border); color: var(--text-main); text-decoration: none; padding: 13px; border-radius: 13px; font-weight: 600; font-size: 14px; margin-bottom: 14px; }
+        .ghost-btn { background: none; border: none; color: var(--text-muted); font-size: 13.5px; cursor: pointer; font-family: inherit; }
         .orders-list { display: flex; flex-direction: column; gap: 10px; }
-        .order-card { background: #211a14; border: 1px solid #302416; border-radius: 14px; padding: 14px; }
+        .order-card { background: var(--bg-card); border: 1px solid #302416; border-radius: 14px; padding: 14px; }
         .order-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .order-date { font-size: 12px; color: #8a7d6f; }
-        .order-mode-tag { font-size: 11px; color: #e8541e; background: rgba(232,84,30,0.12); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+        .order-date { font-size: 12px; color: var(--text-muted); }
+        .order-mode-tag { font-size: 11px; color: var(--accent-color); background: rgba(232,84,30,0.12); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
         .order-items { display: flex; flex-direction: column; gap: 3px; margin-bottom: 10px; }
         .order-item-line { font-size: 13px; color: #c9b8a3; }
         .order-card-foot { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #241b13; padding-top: 10px; }
@@ -667,7 +753,7 @@ function App() {
       {checkoutOpen && (
         <Checkout cart={cart} total={total} onBack={() => setCheckoutOpen(false)}
           onClose={() => { setCheckoutOpen(false); setCartOpen(false); setCart([]); }}
-          onPlaceOrder={placeOrder} />
+          onPlaceOrder={onOrderPlaced} />
       )}
 
       {ordersOpen && <OrdersModal orders={orders} onClose={() => setOrdersOpen(false)} />}
@@ -675,7 +761,244 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+// ---------- واجهة الإدارة ولوحة التحكم المدمجة ----------
+function DashboardView() {
+  const [dashboardOrders, setDashboardOrders] = useState([]);
+
+  useEffect(() => {
+    const ordersRef = db.ref('orders');
+    
+    ordersRef.on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const list = Object.keys(data).map(key => data[key])
+          .sort((a, b) => b.timestamp - a.timestamp);
+        setDashboardOrders(list);
+      } else {
+        setDashboardOrders([]);
+      }
+    });
+
+    return () => ordersRef.off();
+  }, []);
+
+  function updateStatus(id, newStatus) {
+    db.ref(`orders/${id}`).update({ status: newStatus });
+  }
+
+  function clearAllOrders() {
+    if (confirm("هل أنت متأكد من مسح جميع الطلبات نهائياً من السيرفر؟")) {
+      db.ref('orders').remove();
+    }
+  }
+
+  return (
+    <div className="dashboard-view">
+      <style>{`
+        .orders-container {
+          background-color: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 16px;
+          padding: 20px;
+          max-width: 1000px;
+          margin: 20px auto;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .orders-container h3 {
+          color: var(--text-main);
+          margin-top: 0;
+          margin-bottom: 20px;
+          font-size: 1.3rem;
+          border-bottom: 1px solid var(--border);
+          padding-bottom: 12px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        .live-indicator {
+          font-size: 12px;
+          background: rgba(16, 185, 129, 0.15);
+          color: #10b981;
+          padding: 4px 10px;
+          border-radius: 999px;
+          font-weight: 600;
+        }
+        .dashboard-actions {
+          display: flex;
+          justify-content: flex-end;
+          margin-bottom: 15px;
+        }
+        .btn-clear {
+          background: none;
+          border: 1px solid var(--out-of-stock);
+          color: var(--out-of-stock);
+          padding: 6px 12px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 12px;
+        }
+        .btn-clear:hover {
+          background: rgba(239, 68, 68, 0.1);
+        }
+        .table-responsive {
+          width: 100%;
+          overflow-x: auto;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          text-align: right;
+        }
+        th, td {
+          padding: 14px 15px;
+          border-bottom: 1px solid var(--border);
+          font-size: 0.95rem;
+        }
+        th {
+          color: var(--text-muted);
+          font-weight: 600;
+        }
+        .status-badge {
+          display: inline-block;
+          padding: 5px 10px;
+          border-radius: 6px;
+          font-size: 0.85rem;
+          font-weight: bold;
+        }
+        .status-badge.preparing { background-color: var(--preparing); color: white; }
+        .status-badge.delivered { background-color: var(--delivered); color: white; }
+        .status-badge.out-of-stock { background-color: var(--out-of-stock); color: white; }
+        .btn-group {
+          display: flex;
+          gap: 6px;
+        }
+        .btn {
+          border: none;
+          padding: 6px 12px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-family: inherit;
+          font-size: 0.8rem;
+          font-weight: 600;
+          color: white;
+          transition: all 0.2s;
+        }
+        .btn-deliver { background-color: var(--delivered); }
+        .btn-deliver:hover { background-color: #059669; }
+        .btn-out { background-color: var(--out-of-stock); }
+        .btn-out:hover { background-color: #dc2626; }
+        .empty-placeholder {
+          text-align: center;
+          padding: 40px 20px;
+          color: var(--text-muted);
+          font-style: italic;
+        }
+      `}</style>
+
+      <div className="orders-container">
+        <h3>
+          <span>📥 طلبات المطبخ الحالية (شواية بن ديبان)</span>
+          <span className="live-indicator">● السيرفر السحابي متصل ونشط 🌐</span>
+        </h3>
+
+        {dashboardOrders.length > 0 && (
+          <div className="dashboard-actions">
+            <button className="btn-clear" onClick={clearAllOrders}>تفريغ جدول السيرفر</button>
+          </div>
+        )}
+
+        <div className="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>اسم الزبون / الهاتف</th>
+                <th>الطلب ومكوناته</th>
+                <th>طريقة الاستلام</th>
+                <th>المجموع</th>
+                <th>حالة الطلب الحالية</th>
+                <th>إجراءات الإدارة البرمجية</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dashboardOrders.map((order) => (
+                <tr key={order.id}>
+                  <td>
+                    <strong>{order.name}</strong><br />
+                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{order.phone}</span>
+                  </td>
+                  <td>
+                    {order.items && order.items.map((it, idx) => (
+                      <div key={idx}>
+                        {it.name} {it.size ? `(${it.size})` : ''} × {it.qty}
+                      </div>
+                    ))}
+                    {order.notes && <div style={{ fontSize: '12px', color: 'var(--accent-color)', marginTop: '4px' }}>💡 {order.notes}</div>}
+                  </td>
+                  <td>{order.mode === 'delivery' ? `🛵 توصيل: ${order.address}` : '🏪 استلام من المحل'}</td>
+                  <td style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>{order.total} درهم</td>
+                  <td>
+                    {order.status === 'preparing' && <span className="status-badge preparing">⏳ قيد التحضير</span>}
+                    {order.status === 'delivered' && <span className="status-badge delivered">✅ تم التسليم</span>}
+                    {order.status === 'out' && <span className="status-badge out-of-stock">✖ انتهى المخزون</span>}
+                  </td>
+                  <td>
+                    <div className="btn-group">
+                      <button className="btn btn-deliver" onClick={() => updateStatus(order.id, 'delivered')}>✔ تم التسليم</button>
+                      <button className="btn btn-out" onClick={() => updateStatus(order.id, 'out')}>✖ انتهى المخزون</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {dashboardOrders.length === 0 && (
+          <div className="empty-placeholder">لا توجد طلبات نشطة حالياً على السيرفر. بانتظار طلبات الزبائن...</div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------- التطبيق الرئيسي لدمج الواجهتين ----------
+function App() {
+  const [currentTab, setCurrentTab] = useState("customer"); 
+  const [customerOrders, setCustomerOrders] = useState([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("customer_orders");
+    if (saved) setCustomerOrders(JSON.parse(saved));
+  }, []);
+
+  function handleNewOrderPlaced(order) {
+    const updated = [order, ...customerOrders];
+    setCustomerOrders(updated);
+    localStorage.setItem("customer_orders", JSON.stringify(updated));
+  }
+
+  return (
+    <div className="app-root">
+      <div className="app-navigation">
+        <button className={`nav-tab ${currentTab === "customer" ? "active" : ""}`} onClick={() => setCurrentTab("customer")}>
+          🛒 تطبيق طلبات الزبائن
+        </button>
+        <button className={`nav-tab ${currentTab === "dashboard" ? "active" : ""}`} onClick={() => setCurrentTab("dashboard")}>
+          📊 لوحة تحكم المطبخ والإدارة
+        </button>
+      </div>
+
+      {currentTab === "customer" ? (
+        <CustomerView onOrderPlaced={handleNewOrderPlaced} orders={customerOrders} />
+      ) : (
+        <DashboardView />
+      )}
+    </div>
+  );
+}
+
+const root = document.getElementById("root");
+ReactDOM.createRoot(root).render(<App />);
 </script>
 </body>
 </html>
